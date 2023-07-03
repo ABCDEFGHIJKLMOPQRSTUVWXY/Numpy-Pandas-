@@ -21,4 +21,8 @@ result=pd.DataFrame(score)
 for i in range(0,len(df)):
     for j in range(4,len(df.columns)):
         result.iloc[i][j]=int(result.iloc[i][j])
+
 print(result)
+print(result.iloc[:,0])
+answer=pd.concat(result.iloc[:,0],result.iloc[:,4],result.iloc[:,5],result.iloc[:,6],result.iloc[:,7],result.iloc[:,8],result.iloc[:,9])
+print(answer)
