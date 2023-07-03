@@ -9,24 +9,25 @@ df = pd.DataFrame({
 })
 
 score = np.array(df)
-score = np.column_stack((score, np.mean(score[:, 1:3], axis=1)))
-score = np.column_stack((score, np.sum(score[:, 1:3], axis=1)))
-score = np.column_stack((score, np.max(score[:, 1:3], axis=1)))
-score = np.column_stack((score, np.min(score[:, 1:3], axis=1)))
-score = np.column_stack((score, np.ptp(score[:, 1:3], axis=1)))
-score = np.column_stack((score, np.var(score[:, 1:3], axis=1)))
+score = np.column_stack((score, np.sum(score[:, 1:4], axis=1)))
+score = np.column_stack((score, np.mean(score[:, 1:4], axis=1)))
+score = np.column_stack((score, np.max(score[:, 1:4], axis=1)))
+score = np.column_stack((score, np.min(score[:, 1:4], axis=1)))
+score = np.column_stack((score, np.ptp(score[:, 1:4], axis=1)))
+score = np.column_stack((score, np.var(score[:, 1:4], ddof=1,axis=1)))
 
-result = pd.DataFrame(score, columns=['Id', 'Chinese', 'Math', 'English', 'Mean', 'Sum', 'Max', 'Min', 'Range', 'Variance'])
+result = pd.DataFrame(score, columns=['Id', 'Chinese', 'Math', 'English', 'Sum','Mean', 'Max', 'Min', 'Range', 'Variance'])
 
 for i in range(len(result)):
     for j in range(4, len(result.columns)):
         result.iloc[i, j] = int(result.iloc[i, j])
 
 print(result)
-print(' ')
-print(result['Chinese'])
-print(' ')
-cache = pd.concat([result['Id'], result['Min'], result['Range'], result['Variance']], axis=1)
-print(cache)
 
-result.to_csv('answer_1.csv', index=False, encoding='utf-8-sig')
+data = pd.concat([result.iloc[:,0],result.iloc[:,1],result.iloc[:,2],result.iloc[:,3],result.iloc[:,4],result.iloc[:,5],result.iloc[:,6],result.iloc[:,7],result.iloc[:,8],result.iloc[:,9]])
+df = pd.DataFrame(data, columns=['answer'])
+df['id'] = range(len(df))
+df = df[['id', 'answer']]
+df['answer'] = df['answer'].astype(int)
+df
+    
