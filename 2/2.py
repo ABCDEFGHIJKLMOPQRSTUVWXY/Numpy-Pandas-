@@ -6,7 +6,7 @@ print(df.head())
 
 
 #提取学历为本科，工资在25k-35k的数据
-salary_25k_35k_df = df[df['salary'] == '25k-30k']
+salary_25k_35k_df = df[df['salary'] == '25k-35k']
 edu_df = salary_25k_35k_df[salary_25k_35k_df['education'] == '本科']
 df1 = edu_df
 
