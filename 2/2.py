@@ -1,8 +1,8 @@
 import pandas as pd 
 import numpy as np
 
-df = pd.read_excel('/home/mw/input/pandas1206855/pandas120.xlsx')
-df.head()
+df = pd.read_excel('pandas120.xlsx')
+print(df.head())
 
 
 #提取学历为本科，工资在25k-35k的数据
