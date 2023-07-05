@@ -12,7 +12,7 @@ df1 = edu_df
 
 
 #提取salary列中以'40k'结尾的数据
-end_40k_df = df[df['salary'].str.endswitch('40k')]
+end_40k_df = df[df['salary'].str.endswith('40k')]
 df2 = end_40k_df
 
 
