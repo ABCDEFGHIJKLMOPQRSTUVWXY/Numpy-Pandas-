@@ -29,3 +29,5 @@ df['max_salary'] = df['max_salary'].str.extract(r'(\d+)').astype(int)
 
 # 计算每一行的平均值保存在'avr'列中
 df['avr'] = (df['min_salary'] + df['max_salary']) / 2
+
+df3 = df[df['avr'] > 30]
