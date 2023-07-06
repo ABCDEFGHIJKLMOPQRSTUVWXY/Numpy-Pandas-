@@ -1,4 +1,4 @@
-import pandas as pd 
+import pandas as pd
 
 df = pd.read_excel('pandas120.xlsx')
 print(df.head())
