@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="693bb02d-7024-4c91-accf-0ef0b64eb54c" name="变更" comment="这是一次测试">
-      <change beforePath="$PROJECT_DIR$/2/2.py" beforeDir="false" afterPath="$PROJECT_DIR$/2/2.py" afterDir="false" />
-    </list>
+    <list default="true" id="693bb02d-7024-4c91-accf-0ef0b64eb54c" name="变更" comment="这是一次测试" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
