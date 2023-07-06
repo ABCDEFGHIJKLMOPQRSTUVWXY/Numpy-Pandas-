@@ -1,3 +1,9 @@
+import pandas as pd
+data = pd.read_excel('600000.SH.xls')
+data
+
+
+
 data.shift(-5)
 data.head()
 
