@@ -1,32 +1,48 @@
 import pandas as pd
 import numpy as np
-train = pd.read_csv('/home/mw/input/titanic/train.csv')
-test = pd.read_csv('/home/mw/input/titanic/test.csv')
-train_and_test = train.append(test, sort=False) # 合并训练集与测试集
-PassengerId = test['PassengerId']
-train_and_test.shape
-train_and_test.head()
+from sklearn.ensemble import RandomForestRegressor
 
+# STEP1:泰坦尼克号生存数据特征处理
 
+# 1. 合并训练集与测试集
+train = pd.read_csv('train.csv')
+test = pd.read_csv('test.csv')
+df = pd.concat([train, test], axis=0)     # 建议使用concat，append将在未来版本被移除
+pd.set_option('display.max_rows', None)
+pd.set_option('display.max_columns', None)
+pd.set_option('max_colwidth', 100)
 
-#查看缺失值情况
-train_and_test.isnull().sum()
-#众数填充Embarked字段
-embarked_mode=train_and_test['Embarked'].mode()[0]
-train_and_test['Embarked'].fillna(embarked_mode,inplace = True)
-#船票均值填充NA值
-fare_mean=round(train_and_test['Fare'].mean(),4)
-train_and_test['Fare'].fillna(fare_mean,inplace = True)
-## 对embarked,sex,pclass分类特征进行编码,embarked/sex文本型变量转换成数值型
-train_and_test=pd.get_dummies(train_and_test,columns=['Embarked','Sex','Pclass'])
-#票价处理，把票价分成5级
-train_and_test['fare_category']=pd.cut(train_and_test['Fare'],5,labels=[1,2,3,4,5])
-#提取title
-import re
-train_and_test['title']=train_and_test['Name'].apply(lambda x: re.search(r'[a-zA-Z]+\.',x).group(0).strip('.'))
-train_and_test['title'].unique()
-# one_hot编码,类似于get_dummies
-#先把各称呼重新分类
+# 2. 缺失值处理
+# 2.1 对Embarked直接用众数填充
+df.fillna(value={'Embarked': df['Embarked'].mode()[0]}, inplace=True)
+# print(df[df['Embarked'].isnull()])
+
+# 2.2 填充船票Fare字段
+df.fillna(value={'Fare': df['Fare'].mean()}, inplace=True)
+# print(df[df['Fare'].isnull()])
+
+# 2.3 填充年龄Age字段
+# 为尽可能用多的特征去预测Age的值，先对Cabin、Embarked、Name、Sex、Ticket、Pclass等特征进行处理，模型预测见后
+
+# 3. 不同特征字段的数据处理
+# 3.1 先对Embarked、Sex以及Pclass等用dummy处理
+df = pd.get_dummies(df, columns=['Embarked', 'Sex', 'Pclass'])
+
+# 3.2 票价分级处理
+df['qcut_fare'], bins = pd.qcut(df['Fare'], 5, retbins=True)
+df['qcut_fare_2fact'] = pd.factorize(df['qcut_fare'])[0]
+tmp_fare_lv = pd.get_dummies(df['qcut_fare_2fact']).rename(columns=lambda x: 'Fare_lv_' + str(x))
+df = pd.concat([df, tmp_fare_lv], axis=1)
+df.drop(['qcut_fare', 'qcut_fare_2fact'], axis=1, inplace=True)
+
+# 3.3 名字处理
+df['Title'] = df['Name'].apply(lambda x: x.split(',')[1].split('.')[0].strip())
+
+# 3.3.1 对头衔进行oner-hot编码
+# tmp_title_lv = pd.crosstab(df.Title, df.Sex)    # 查看头衔人群稀有度
+# print(tmp_title_lv.T)
+# 提取称呼
+df['Title'] = df['Name'].apply(lambda x : x.split(',')[1].split('.')[0].strip())
 titleDict = {
     "Capt": "Officer",
     "Col": "Officer",
@@ -47,16 +63,51 @@ titleDict = {
     "Master": "Master",
     "Lady": "Royalty"
 }
-train_and_test['title'] = train_and_test['title'].map(titleDict)
-#分类完毕后进行转换成数值化特征，参考于帖子：[https://www.heywhale.com/home/competition/forum/628aeb26b29dff4411335e2c](http://)
-train_and_test['title'] = pd.factorize(train_and_test['title'])[0]
-title_dummies_df = pd.get_dummies(train_and_test['title'], prefix=train_and_test[['title']].columns[0])
-train_and_test = pd.concat([train_and_test, title_dummies_df], axis=1)
-train_and_test.head()
-# 提取长度特征
-train_and_test['length']=train_and_test['Name'].apply(len)
-#Cabin缺失值过多，将其分为有无两类，进行编码，如果缺失，即为0，否则为1;
-train_and_test.loc[train_and_test.Cabin.isnull(),'Cabin']='nan'
-train_and_test['Cabin']= train_and_test['Cabin'].apply(lambda x: 0 if x=='nan' else 1)
-#是把Ticket 分类，如果有字母的为一类，没有字母的为一类,有字母的为一类，没有字母的为0）
-train_and_test['ticket_levl']=train_and_test['Ticket'].astype(str).apply(lambda x : len(re.search('([a-zA-Z]+)',x).group(0)) if re.search('([a-zA-Z]+)',x) else 0 )
+df['Title'] = df['Title'].map(titleDict)
+# one_hot编码
+df['Title'] = pd.factorize(df['Title'])[0]
+title_dummies_df = pd.get_dummies(df['Title'], prefix=df[['Title']].columns[0])
+df = pd.concat([df, title_dummies_df], axis=1)
+
+# 3.3.2 添加一列：提取名字长度
+df['len_name'] = df['Name'].apply(len)
+
+# 3.4 Cabin处理 　Cabin缺失值过多，将其分为有无两类，进行编码，如果缺失，即为0，否则为1
+df.loc[df.Cabin.isnull(), 'Cabin'] = 'nan'
+df['Cabin'] = df.Cabin.apply(lambda x: 0 if x == 'nan' else 1)
+# print(df['Cabin'].value_counts())
+
+# 3.5 Ticket处理
+df['Ticket_latter'] = df['Ticket'].apply(lambda x: x.split(' ')[0].strip())
+df['Ticket_latter'] = df['Ticket_latter'].apply(lambda x: 'Latter' if x.isnumeric() == False else x)
+df['Ticket_latter'] = pd.factorize(df['Ticket_latter'])[0]
+
+
+# 4. 利用随机森林预测Age缺失值
+
+missing_age = df.drop(['PassengerId', 'Survived', 'Name', 'Ticket'], axis=1)  # 去除字符串类型的字段
+missing_age_train = missing_age[missing_age['Age'].notnull()]
+missing_age_test = missing_age[missing_age['Age'].isnull()]
+
+X_train = missing_age_train.iloc[:, 1:]
+y_train = missing_age_train.iloc[:, 0]
+X_test = missing_age_test.iloc[:, 1:]
+
+rfr = RandomForestRegressor(n_estimators=1000, n_jobs=-1)
+rfr.fit(X_train, y_train)
+y_predict = rfr.predict(X_test)
+df.loc[df['Age'].isnull(), 'Age'] = y_predict
+
+# 5. 各特征与Survived的相关系数排序
+df.corr()['Survived'].abs().sort_values(ascending=False)
+
+del df['Age']
+df = df.round(0)
+
+df2 = df[['Title']]
+df2.columns = ['answer']
+df2.dropna(axis=0, how='any', inplace=True)
+df2['id'] = range(len(df2))
+df2 = df2[['id', 'answer']]
+
+df2.to_csv('answer_5.csv', index=False, encoding='utf-8-sig')
