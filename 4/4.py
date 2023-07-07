@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-data = pd.read_excel('/home/mw/input/pandas1206855/600000.SH.xls')
+data = pd.read_excel('600000.SH.xls')
 
 # 删除空值
 data.dropna(axis=0, how='any', inplace=True)
@@ -33,10 +33,10 @@ plot_df1_mean = plot_df1_mean.rename(columns={0: '原始数据',
 
 # 3. 绘制上一题的移动均值与原始数据折线图
 
-# plt.rc('figure', figsize=(16, 6), dpi=150)
-# plt.plot(plot_df1_mean['原始数据'])
-# plt.plot(plot_df1_mean['移动窗口均值'])
-# plt.show()
+plt.rc('figure', figsize=(16, 6), dpi=150)
+plt.plot(plot_df1_mean['原始数据'])
+plt.plot(plot_df1_mean['移动窗口均值'])
+plt.show()
 
 # 4. 计算布林指标
 
@@ -62,7 +62,7 @@ plt.rc('figure', figsize=(16, 6), dpi=150)
 plt.plot(ma, color='blue')
 plt.plot(up, color='red')
 plt.plot(dn, color='g')
-#plt.show()
+plt.show()
 
 # STEP2: 为了简化最终提交的行数，所以这里只需要保留上轨线UP这一字段即可，并保存为 csv 文件
 
